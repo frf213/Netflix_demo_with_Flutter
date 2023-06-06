@@ -8,11 +8,29 @@ import 'package:netflix_demo/screens/popular_tvseries_screen.dart';
 import 'package:netflix_demo/screens/top_rated_tvseries_screen.dart';
 
 class HomeScreen extends StatelessWidget {
+  final bool darkModeEnabled;
+  final Function(bool?) toggleDarkMode;
+
+  HomeScreen({
+    required this.darkModeEnabled,
+    required this.toggleDarkMode,
+  });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Home'),
+        actions: [
+          IconButton(
+            icon: Icon(
+              darkModeEnabled ? Icons.light_mode : Icons.dark_mode,
+            ),
+            onPressed: () {
+              toggleDarkMode(!darkModeEnabled);
+            },
+          ),
+        ],
       ),
       body: ListView(
         children: <Widget>[
@@ -82,7 +100,6 @@ class HomeScreen extends StatelessWidget {
               );
             },
           ),
-          // Add more list items or other UI elements as needed
         ],
       ),
     );

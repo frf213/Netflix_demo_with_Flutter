@@ -14,18 +14,31 @@ void main() {
   runApp(NetflixDemoApp());
 }
 
-class NetflixDemoApp extends StatelessWidget {
+class NetflixDemoApp extends StatefulWidget {
+  @override
+  _NetflixDemoAppState createState() => _NetflixDemoAppState();
+}
+
+class _NetflixDemoAppState extends State<NetflixDemoApp> {
+  bool _darkModeEnabled = false;
+
+  void _toggleDarkMode(bool? value) {
+    setState(() {
+      _darkModeEnabled = value ?? false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Netflix Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.red,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      theme: _darkModeEnabled ? _buildDarkTheme() : _buildLightTheme(),
       initialRoute: '/',
       routes: {
-        '/': (context) => HomeScreen(),
+        '/': (context) => HomeScreen(
+          darkModeEnabled: _darkModeEnabled,
+          toggleDarkMode: _toggleDarkMode,
+        ),
         '/movie': (context) => MovieScreen(),
         '/movie_details': (context) => MovieDetailsScreen(
           title: 'Movie Title',
@@ -52,6 +65,22 @@ class NetflixDemoApp extends StatelessWidget {
           profileImage: 'https://example.com/profile.jpg',
         ),
       },
+    );
+  }
+
+  ThemeData _buildLightTheme() {
+    return ThemeData(
+      primarySwatch: Colors.red,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      brightness: Brightness.light,
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    return ThemeData(
+      primarySwatch: Colors.red,
+      visualDensity: VisualDensity.adaptivePlatformDensity,
+      brightness: Brightness.dark,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:netflix_demo/services/tmdb_api_service.dart';
+import 'package:netflix_demo/screens/movie_details_screen.dart';
 
 class TopRatedMoviesScreen extends StatefulWidget {
   @override
@@ -8,26 +9,7 @@ class TopRatedMoviesScreen extends StatefulWidget {
 }
 
 class _TopRatedMoviesScreenState extends State<TopRatedMoviesScreen> {
-  List<dynamic> _movies = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchTopRatedMovies();
-  }
-
-  Future<void> _fetchTopRatedMovies() async {
-    try {
-      final apiService = TMDBApiService();
-      final topRatedMovies = await apiService.getTopRatedMovies();
-      setState(() {
-        _movies = topRatedMovies;
-      });
-    } catch (e) {
-      print('Error fetching top-rated movies: $e');
-      // Handle the error gracefully in your app
-    }
-  }
+  TMDBApiService apiService = TMDBApiService();
 
   @override
   Widget build(BuildContext context) {
@@ -35,29 +17,50 @@ class _TopRatedMoviesScreenState extends State<TopRatedMoviesScreen> {
       appBar: AppBar(
         title: Text('Top Rated Movies'),
       ),
-      body: _movies.isNotEmpty
-          ? ListView.builder(
-        itemCount: _movies.length,
-        itemBuilder: (context, index) {
-          final movie = _movies[index];
-          final title = movie['title'];
-          final imageUrl = 'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
-
-          return ListTile(
-            leading: CachedNetworkImage(
-              imageUrl: imageUrl,
-              placeholder: (context, url) => CircularProgressIndicator(),
-              errorWidget: (context, url, error) => Icon(Icons.error),
-            ),
-            title: Text(title),
-            onTap: () {
-              // Add navigation logic to movie details screen
-            },
-          );
+      body: FutureBuilder<List<dynamic>?>(
+        future: apiService.getTopRatedMovies(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data != null) {
+            final moviesList = snapshot.data!;
+            return ListView.builder(
+              itemCount: moviesList.length,
+              itemBuilder: (context, index) {
+                final movie = moviesList[index];
+                return ListTile(
+                  leading: CachedNetworkImage(
+                    imageUrl: 'https://image.tmdb.org/t/p/w200${movie['poster_path']}',
+                    placeholder: (context, url) => CircularProgressIndicator(),
+                    errorWidget: (context, url, error) => Icon(Icons.error),
+                  ),
+                  title: Text(movie['title'] ?? ''),
+                  subtitle: Text('Rating: ${movie['vote_average']}'),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MovieDetailsScreen(
+                          title: movie['title'] ?? '',
+                          imageUrl: 'https://image.tmdb.org/t/p/w200${movie['poster_path']}',
+                          description: movie['overview'] ?? '',
+                          releaseDate: movie['release_date'] ?? '',
+                          rating: movie['vote_average'] ?? 0.0,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
         },
-      )
-          : Center(
-        child: CircularProgressIndicator(),
       ),
     );
   }
