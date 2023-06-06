@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:netflix_demo/services/tmdb_api_service.dart';
 import 'package:netflix_demo/screens/movie_details_screen.dart';
 
@@ -9,18 +8,18 @@ class MovieScreen extends StatefulWidget {
 }
 
 class _MovieScreenState extends State<MovieScreen> {
+  TMDBApiService apiService = TMDBApiService();
   List<dynamic> _movies = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchMovies();
+    fetchMovies();
   }
 
-  Future<void> _fetchMovies() async {
+  Future<void> fetchMovies() async {
     try {
-      final apiService = TMDBApiService();
-      final movies = await apiService.getMovies();
+      final movies = await apiService.getPopularMovies();
       setState(() {
         _movies = movies;
       });
@@ -36,22 +35,22 @@ class _MovieScreenState extends State<MovieScreen> {
       appBar: AppBar(
         title: Text('Movies'),
       ),
-      body: _movies.isNotEmpty
-          ? ListView.builder(
+      body: ListView.builder(
         itemCount: _movies.length,
         itemBuilder: (context, index) {
           final movie = _movies[index];
           final title = movie['title'];
-          final imageUrl =
-              'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
+          final imageUrl = 'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
 
           return ListTile(
-            leading: CachedNetworkImage(
-              imageUrl: imageUrl,
-              placeholder: (context, url) =>
-                  CircularProgressIndicator(),
-              errorWidget: (context, url, error) => Icon(Icons.error),
-            ),
+            leading: imageUrl != null
+                ? Image.network(
+              imageUrl,
+              width: 60,
+              height: 90,
+              fit: BoxFit.cover,
+            )
+                : SizedBox.shrink(),
             title: Text(title),
             onTap: () {
               Navigator.push(
@@ -69,9 +68,6 @@ class _MovieScreenState extends State<MovieScreen> {
             },
           );
         },
-      )
-          : Center(
-        child: CircularProgressIndicator(),
       ),
     );
   }

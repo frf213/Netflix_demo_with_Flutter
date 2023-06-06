@@ -4,6 +4,8 @@ import 'package:netflix_demo/screens/popular_movies_screen.dart';
 import 'package:netflix_demo/screens/top_rated_movies_screen.dart';
 import 'package:netflix_demo/screens/search_screen.dart';
 import 'package:netflix_demo/screens/user_profile_screen.dart';
+import 'package:netflix_demo/screens/popular_tvseries_screen.dart';
+import 'package:netflix_demo/screens/top_rated_tvseries_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
@@ -31,6 +33,26 @@ class HomeScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => TopRatedMoviesScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.tv),
+            title: Text('Popular TV Series'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => PopularTVSeriesScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.star),
+            title: Text('Top Rated TV Series'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TopRatedTVSeriesScreen()),
               );
             },
           ),

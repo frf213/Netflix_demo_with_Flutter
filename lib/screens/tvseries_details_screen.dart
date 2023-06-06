@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class MovieDetailsScreen extends StatelessWidget {
+class TVSeriesDetailsScreen extends StatelessWidget {
   final String title;
   final String imageUrl;
   final String description;
   final String releaseDate;
   final double rating;
 
-  const MovieDetailsScreen({
+  TVSeriesDetailsScreen({
     required this.title,
     required this.imageUrl,
     required this.description,

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:netflix_demo/services/tmdb_api_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:netflix_demo/screens/movie_details_screen.dart';
+import 'package:netflix_demo/screens/tvseries_details_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   @override
@@ -17,16 +19,26 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  Future<void> _searchMovies(String query) async {
-    try {
-      final apiService = TMDBApiService();
-      final movies = await apiService.searchMovies(query);
+  Future<void> _searchMoviesAndTVSeries(String query) async {
+    final String apiKey = "080184f9aad4105504265a00cf70d578"; // Replace with your TMDB API key
+    final String baseUrl = 'https://api.themoviedb.org/3';
+    final String moviesUrl = '$baseUrl/search/movie?api_key=$apiKey&query=$query';
+    final String tvSeriesUrl = '$baseUrl/search/tv?api_key=$apiKey&query=$query';
+
+    final movieResponse = await http.get(Uri.parse(moviesUrl));
+    final tvSeriesResponse = await http.get(Uri.parse(tvSeriesUrl));
+
+    if (movieResponse.statusCode == 200 && tvSeriesResponse.statusCode == 200) {
+      final movieData = jsonDecode(movieResponse.body);
+      final tvSeriesData = jsonDecode(tvSeriesResponse.body);
+
       setState(() {
-        _searchResults = movies;
+        _searchResults = [...movieData['results'], ...tvSeriesData['results']];
       });
-    } catch (e) {
-      print('Error searching movies: $e');
-      // Handle the error gracefully in your app
+    } else {
+      setState(() {
+        _searchResults = [];
+      });
     }
   }
 
@@ -37,11 +49,11 @@ class _SearchScreenState extends State<SearchScreen> {
         title: TextField(
           controller: _searchController,
           decoration: InputDecoration(
-            hintText: 'Search movies',
+            hintText: 'Search movies or TV series',
           ),
-          onChanged: (query) {
+          onSubmitted: (query) {
             if (query.isNotEmpty) {
-              _searchMovies(query);
+              _searchMoviesAndTVSeries(query);
             } else {
               setState(() {
                 _searchResults = [];
@@ -53,9 +65,10 @@ class _SearchScreenState extends State<SearchScreen> {
       body: ListView.builder(
         itemCount: _searchResults.length,
         itemBuilder: (context, index) {
-          final movie = _searchResults[index];
-          final title = movie['title'];
-          final imageUrl = 'https://image.tmdb.org/t/p/w500${movie['poster_path']}';
+          final item = _searchResults[index];
+          final title = item['title'] ?? item['name'];
+          final imageUrl = 'https://image.tmdb.org/t/p/w500${item['poster_path']}';
+          final isMovie = item['title'] != null;
 
           return ListTile(
             leading: imageUrl != null
@@ -71,12 +84,20 @@ class _SearchScreenState extends State<SearchScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MovieDetailsScreen(
-                    title: movie['title'],
+                  builder: (context) => isMovie
+                      ? MovieDetailsScreen(
+                    title: title,
                     imageUrl: imageUrl,
-                    description: movie['overview'],
-                    releaseDate: movie['release_date'],
-                    rating: movie['vote_average'],
+                    description: item['overview'],
+                    releaseDate: item['release_date'],
+                    rating: item['vote_average'],
+                  )
+                      : TVSeriesDetailsScreen(
+                    title: title,
+                    imageUrl: imageUrl,
+                    description: item['overview'],
+                    releaseDate: item['first_air_date'],
+                    rating: item['vote_average'],
                   ),
                 ),
               );
